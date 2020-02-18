@@ -36,7 +36,7 @@ impl Board {
       Player::X => Player::O,
       Player::O => Player::X,
       Player::None => {
-        return Err("Board has an invalid next player".to_string());
+        return Err(String::from("Board has an invalid next player"));
       }
     };
 
