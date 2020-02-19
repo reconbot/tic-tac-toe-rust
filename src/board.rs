@@ -20,9 +20,9 @@ impl fmt::Display for Player {
 
 #[derive(Debug)]
 pub struct Board {
-    pub move_count: i32,
-    pub next_player: Player,
-    pub cells: [Player; 9],
+    move_count: i32,
+    next_player: Player,
+    cells: [Player; 9],
 }
 
 #[derive(Debug, PartialEq)]
@@ -106,6 +106,18 @@ impl Board {
             9 => GameState::Won(Player::None),
             _ => GameState::Playing,
         }
+    }
+
+    pub fn move_count(&self) -> i32 {
+      self.move_count
+    }
+
+    pub fn cells(&self) -> [Player; 9] {
+      self.cells
+    }
+
+    pub fn next_player(&self) -> Player {
+        self.next_player
     }
 }
 

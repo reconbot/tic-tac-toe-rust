@@ -63,7 +63,7 @@ fn print_won(board: &Board, winner: Player) {
     print!("\n");
     match winner {
         Player::None => println!("Tie!"),
-        _ => println!("{} won in {} moves!", winner, board.move_count),
+        _ => println!("{} won in {} moves!", winner, board.move_count()),
     }
 }
 
@@ -96,25 +96,19 @@ fn print_board(
 }
 
 fn display_cell(board: &Board, cursor: usize, cell: usize) -> String {
-    let cells = board.cells;
+    let cells = board.cells();
     if cursor == cell {
-        let dsp_cell = if cells[cell] == Player::None {
-            board.next_player
+        let cell_display = if cells[cell] == Player::None {
+            board.next_player()
         } else {
             cells[cell]
         };
         return format!(
             "{}{}{}",
             termion::style::Underline,
-            dsp_cell,
+            cell_display,
             termion::style::Reset
         );
     }
     format!("{}", cells[cell])
-}
-
-fn read_string() -> String {
-    let mut guess = String::new();
-    stdin().read_line(&mut guess).unwrap();
-    guess.trim().to_string()
 }
