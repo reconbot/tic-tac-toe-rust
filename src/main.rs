@@ -42,11 +42,11 @@ fn main() {
 }
 
 fn print_won(board: &Board, winner: Player) {
-  if winner == Player::None {
-    println!("Tie!");
-    return
+  print!("\n");
+  match winner {
+    Player::None => println!("Tie!"),
+    _ => println!("{} won in {} moves!", winner, board.move_count)
   }
-  println!("{} won in {} moves!", winner, board.move_count);
 }
 
 fn print_board(stdout: &mut termion::raw::RawTerminal<std::io::Stdout>, board: &Board, cursor: usize) {
