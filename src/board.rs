@@ -91,13 +91,13 @@ impl Board {
         };
 
         let cells = self.cells;
-        for win_state in winning_states.iter() {
-            for player in [Player::X, Player::O].iter() {
-                if cells[win_state.0] == *player
-                    && cells[win_state.1] == *player
-                    && cells[win_state.2] == *player
+        for &win_state in winning_states.iter() {
+            for &player in [Player::X, Player::O].iter() {
+                if cells[win_state.0] == player
+                    && cells[win_state.1] == player
+                    && cells[win_state.2] == player
                 {
-                    return GameState::Won(*player);
+                    return GameState::Won(player);
                 }
             }
         }
