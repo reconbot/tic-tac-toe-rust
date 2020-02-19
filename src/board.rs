@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Player {
   X,
@@ -5,11 +7,29 @@ pub enum Player {
   None,
 }
 
+impl fmt::Display for Player {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let output = match self {
+      Player::X => "X",
+      Player::O => "O",
+      Player::None => " ",
+    };
+    write!(f, "{}", output)
+  }
+}
+
+
 #[derive(Debug)]
 pub struct Board {
-  move_count: i32,
-  next_player: Player,
-  cells: [Player; 9],
+  pub move_count: i32,
+  pub next_player: Player,
+  pub cells: [Player; 9],
+}
+
+#[derive(Debug, PartialEq)]
+pub enum GameState {
+  Won(Player),
+  Playing,
 }
 
 impl Board {
@@ -25,14 +45,11 @@ impl Board {
     }
   }
 
-  pub fn play(&self, cell: usize, player: Player) -> Result<Board, String> {
-    if self.next_player != player {
-      return Err(format!("Next Player should be {:?} got {:?}", self.next_player, player));
-    }
+  pub fn play(&mut self, cell: usize) -> Result<(), String> {
     if self.cells[cell] != Player::None {
-      return Err(format!("Cell {} is already in use by {:?}", cell, player));
+      return Err(format!("Cell {} is already in use by {:?}", cell, self.cells[cell]));
     }
-    let next_player = match player {
+    let next_player = match self.next_player {
       Player::X => Player::O,
       Player::O => Player::X,
       Player::None => {
@@ -40,17 +57,42 @@ impl Board {
       }
     };
 
-    let mut board = Board {
-      move_count: self.move_count + 1,
-      next_player,
-      ..*self
-    };
-    board.cells[cell] = player;
-    Ok(board)
+    self.move_count+= 1;
+    self.cells[cell] = self.next_player;
+    self.next_player = next_player;
+    Ok(())
   }
 
-  pub fn won(&self) -> Player {
-    Player::X
+  pub fn calculate_game_state(&self) -> GameState {
+    let winning_states = [
+      (0,1,2),
+      (3,4,5),
+      (6,7,8),
+      (0,3,6),
+      (1,4,7),
+      (3,5,8),
+      (0,4,8),
+      (2,4,6),
+    ];
+
+    if self.move_count < 5 {
+      return GameState::Playing
+    };
+
+    let cells = self.cells;
+
+    for win_state in winning_states.iter() {
+      for player in [Player::X, Player::O].iter() {
+        if cells[win_state.0] == *player && cells[win_state.1] == *player && cells[win_state.2] == *player {
+          return GameState::Won(*player);
+        }
+      }
+    }
+    if self.move_count == 9 {
+      GameState::Won(Player::None)
+    } else {
+      GameState::Playing
+    }
   }
 }
 
@@ -71,26 +113,29 @@ mod tests {
 
   #[test]
   fn play_works() {
-    let board = Board::new(Player::X);
-    let board = board.play(0, Player::X).unwrap();
+    let mut board = Board::new(Player::X);
+    board.play(0).unwrap();
     assert_eq!(board.cells[0], Player::X);
-    let board = board.play(1, Player::O).unwrap();
+    board.play(1).unwrap();
     assert_eq!(board.cells[1], Player::O);
   }
 
-  #[test]
-  fn players_must_take_turns() {
-    let board = Board::new(Player::X);
-    board.play(0, Player::O).expect_err("player O should not have been allowed to play");
-    let board = board.play(0, Player::X).unwrap();
-    board.play(2, Player::X).expect_err("player X should not have been allowed to play");
-    board.play(1, Player::O).unwrap();
-  }
 
   #[test]
   fn cells_cannot_be_reused() {
-    let board = Board::new(Player::X);
-    let board = board.play(0, Player::X).unwrap();
-    board.play(0, Player::O).expect_err("cell 0 should not have been allowed to be reused");
+    let mut board = Board::new(Player::X);
+    board.play(0).unwrap();
+    board.play(0).expect_err("cell 0 should not have been allowed to be reused");
+  }
+
+  #[test]
+  fn calculate_game_state_x_win() {
+    let mut board = Board::new(Player::X);
+    board.play(0).unwrap();
+    board.play(1).unwrap();
+    board.play(3).unwrap();
+    board.play(4).unwrap();
+    board.play(6).unwrap();
+    assert_eq!(board.calculate_game_state(), GameState::Won(Player::X));
   }
 }
